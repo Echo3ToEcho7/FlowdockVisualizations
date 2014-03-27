@@ -1,0 +1,41 @@
+<!doctype html>
+<html data-ng-app="fdvis">
+  <head>
+    <title>FD Visualizations</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/bootflat/2.0.0/css/bootflat.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse" role="navigation" data-ng-controller="fdNavBar">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">FDVis</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li class="dropdown" data-ng-repeat="(group, entries) in navs">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" onclick="return false;">{{ group }} <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li data-ng-repeat="entry in entries"><a href="#{{entry.route}}">{{entry.name}}</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+    <div data-ng-view></div>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/g/jquery@2.1.0,bootstrap@3.1.1,lodash@2.4.1,d3js@3.4.3,highcharts@3.0.9"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/g/angularjs@1.2.15(angular.min.js+angular-animate.min.js+angular-cookies.min.js+angular-route.min.js)"></script>
+    <script type="text/javascript" src="/app.js"></script>
+  </body>
+</html>
