@@ -1,5 +1,10 @@
 # Flowdock Visualizations
 
+### Screenshot
+
+![Total Started by
+User](https://raw.githubusercontent.com/Echo3ToEcho7/FlowdockVisualizations/master/screenshots/totalStartedByUser.png)
+
 ### Setup
 
 ```bash
