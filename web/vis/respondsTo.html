@@ -8,15 +8,6 @@ function TotalsByUserController(fdVisualizationData) {
 
   usersByID = _.indexBy(fdVisualizationData.users, 'id');
   usersTotalMessages = _.groupBy(fdVisualizationData.messages, 'user');
-  console.log(usersTotalMessages);
-  normalizedData = _(usersTotalMessages).transform(function (result, messages, user) {
-    if (usersByID[user]) {
-      result[usersByID[user].nick] = {
-        value: messages.length,
-        username: usersByID[user].nick
-      };
-    }
-  }).map(function (val) { return val; }).value();
 
 
 var width = 720,
