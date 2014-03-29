@@ -20,10 +20,20 @@ app.constant('fdVisualizations', [{
   route: '/totalByUsersExp',
   href: '/vis/totalStartedByUsersExp.html'
 }, {
+  group: 'Users',
+  name: 'Total Started by Users During Experiment (filter Tye)',
+  route: '/totalByUsersExpFilterTye',
+  href: '/vis/totalStartedByUsersExpFilterTye.html'
+}, {
   group: 'Conversations',
-  name: 'Starts Threads',
-  route: '/startsThreads',
-  href: '/vis/startsThreads.html'
+  name: 'Responces',
+  route: '/respondsTo',
+  href: '/vis/respondsTo.html'
+}, {
+  group: 'Messages',
+  name: 'By Day of Week and Time',
+  route: '/dayOfWeekAndTime',
+  href: '/vis/postsByDayHour.html'
 }]);
 
 app.service('fdVisualizationData', function ($http, $q) {
