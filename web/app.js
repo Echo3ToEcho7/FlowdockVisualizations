@@ -7,7 +7,7 @@ app.constant('fdVisualizations', [{
   group: 'Users',
   name: 'Total by Users',
   route: '/totalByUsers',
-  href: '/vis/totalByUsers.html'
+  href: 'web/vis/totalByUsers.html'
 }, {
   group: 'Users',
   name: 'Total by Users During Experiment',
@@ -108,7 +108,7 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
     dataFlows.downloadUsers().then(function (users) {
       $scope.users = _(users).sortBy('name').first(20).value();
       $scope.user_loading = false;
-    }, function (err) { console.error(err); });
+    }, function (err) { console.error(err); throw err; });
   };
   $scope.updateUsers();
   getAllFlows();

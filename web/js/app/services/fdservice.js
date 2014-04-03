@@ -19,7 +19,7 @@ Object.defineProperty(Flow.prototype, 'lastUpdated', {
   get: function () {
     var d = this.$q.defer();
     this.db.get('lastUpdated').then(
-      function (val) { console.log('resolving'); d.resolve(val.lastUpdated); },
+      function (val) { d.resolve(val.lastUpdated); },
       function (err) { d.resolve(null); }
     );
     return d.promise;
@@ -27,12 +27,9 @@ Object.defineProperty(Flow.prototype, 'lastUpdated', {
   set: function (value) {
     var db = this.db;
     
-    console.log('updating value');
     db.get('lastUpdated').then(function (doc) {
-      console.log('updated');
       db.put({lastUpdated: value}, 'lastUpdated', doc._rev);
     }, function (err) {
-      console.log('created');
       db.put({lastUpdated: value}, 'lastUpdated');
     });
   }
@@ -47,7 +44,7 @@ Flow.prototype.update = function update(doc) {
   db.get(doc.id).then(function (old) {
     if (old && old._rev) {
       db.put(doc, doc.id, old._rev).then(function () { 
-        this.lastUpdated = new Date();
+        self.lastUpdated = new Date();
         rs.$emit('fdvis$flow$updated', self);
         d.resolve(doc);
       });
@@ -192,7 +189,9 @@ var mod = angular.module('data', [])
   var download = function (path, db) {
     var d = $q.defer();
 
+    console.log('clearing db');
     db.destroy().then(function () {
+      console.log('db cleared');
       $http.get(path).success(function (data) {
         _.each(data, function (d) {
           d._id = d.id + '';
@@ -202,7 +201,7 @@ var mod = angular.module('data', [])
           docs: data
         }).then(function () { d.resolve(data); }, function (err) { d.reject(err); });
       });
-    });
+    }, function (err) { console.error(err); });
 
     return d.promise;
   };

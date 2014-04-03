@@ -1,7 +1,7 @@
 <script type="text/javascript">
   //var vis = angular.module('fdvis.totalByUsers', ['fdvis']);
 
-function TotalsByUserController(fdVisualizationData) {
+function TotalsByUserController($scope, $q, dataFlows) {
   var
     usersByID,
     normalizedData,
@@ -10,52 +10,80 @@ function TotalsByUserController(fdVisualizationData) {
     format = d3.format(",d"),
     color = d3.scale.category20c();
 
-  usersByID = _.indexBy(fdVisualizationData.users, 'id');
-  usersTotalMessages = _.groupBy(fdVisualizationData.messages, 'user');
-  console.log(usersTotalMessages);
-  normalizedData = _(usersTotalMessages).transform(function (result, messages, user) {
-    if (usersByID[user]) {
-      result[usersByID[user].nick] = {
-        value: messages.length,
-        username: usersByID[user].nick
-      };
-    }
-  }).map(function (val) { return val; }).value();
 
-  var bubble = d3.layout.pack()
-    .sort(null)
-    .size([width, height])
-    .padding(1.5);
+  $scope.loading = true;
+  $scope.title = "Total by User";
+  $scope.section = "Users";
 
-  var svg = d3.select("#chart").append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("class", "bubble");
+  $q.all({
+    users: dataFlows.getAllUsers(),
+    messages: dataFlows.getActiveFlow().then(function (f) { return f.all(); })
+  }).then(function (res) {
+    usersByID = _.indexBy(res.users, 'id');
+    usersTotalMessages = _.groupBy(res.messages, 'user');
+    normalizedData = _(usersTotalMessages).transform(function (result, messages, user) {
+      if (usersByID[user]) {
+        result[usersByID[user].nick] = {
+          value: messages.length,
+          username: usersByID[user].nick
+        };
+      }
+    }).map(function (val) { return val; }).value();
 
-  d3.select(self.frameElement).style("height", height + "px");
+    var bubble = d3.layout.pack()
+      .sort(null)
+      .size([width, height])
+      .padding(1.5);
 
-  var node = svg.selectAll(".node")
-      .data(bubble.nodes({children: normalizedData})
-      .filter(function (d) { return !d.children; }))
-    .enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    var svg = d3.select("#chart").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("class", "bubble");
 
-  node.append("title")
-    .text(function(d) { return d.username + ": " + format(d.value); });
+    d3.select(self.frameElement).style("height", height + "px");
 
-  node.append("circle")
-    .attr("r", function(d) { return d.r; })
-    .style("fill", function(d) { return color(d.value); });
+    var node = svg.selectAll(".node")
+        .data(bubble.nodes({children: normalizedData})
+        .filter(function (d) { return !d.children; }))
+      .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
-  node.append("text")
-    .attr("dy", ".3em")
-    .style("text-anchor", "middle")
-    .text(function(d) { return d.username.substring(0, d.r / 3); });
+    node.append("title")
+      .text(function(d) { return d.username + ": " + format(d.value); });
 
+    node.append("circle")
+      .attr("r", function(d) { return d.r; })
+      .style("fill", function(d) { return color(d.value); });
+
+    node.append("text")
+      .attr("dy", ".3em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.username.substring(0, d.r / 3); });
+
+    $scope.loading = false;
+  });
 
 }
 </script>
-<div data-ng-controller="TotalsByUserController" id="chart">
-
-</div>
+<section class="content-header">
+    <h1>
+      Total by Users
+    </h1>
+    <ol class="breadcrumb">
+      <li><a href="#"><i class="fa fa-bar-chart-o"></i> Users</a></li>
+        <li class="active">Total by Users</li>
+    </ol>
+</section>
+<section class="content"  data-ng-controller="TotalsByUserController">
+  <div class="box box-primary box-default">
+    <div class="box-header">
+      <div class="box-title">Chart</div>
+    </div>
+    <div class="box-body">
+      <div id="chart" style="min-height: 300px"></div>
+    </div>
+    <div class="overlay" data-ng-show="loading"></div>
+    <div class="loading-img" data-ng-show="loading"></div>
+  </div>
+</section>
