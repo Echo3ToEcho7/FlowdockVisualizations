@@ -143,6 +143,7 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
   $scope.activeFID = dataFlows.getActiveFlowID();
   $scope.makeActive = function (id) {
     $scope.activeFID = id;
+    localStorage.setItem('activeFlow', id);
     dataFlows.setActiveFlowID(id);
   };
 });
@@ -166,6 +167,10 @@ app.run(function ($http, dataFlows, Base64) {
 
     $http.defaults.headers.common.Authorization = 'Basic ' + Base64.encode('4f9bb278d74c144799594c6558f2ac02' + ':' + '');
 
+
+    if (localStorage.getItem('activeFlow')) {
+      dataFlows.setActiveFlowID(localStorage.getItem('activeFlow'));
+    }
 
     //dataFlows.downloadFlows().then(function (flows) {
       //dataFlows.getFlow(flows[0].id).then(function (flow) {
