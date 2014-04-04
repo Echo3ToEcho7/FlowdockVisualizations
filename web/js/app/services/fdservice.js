@@ -115,16 +115,23 @@ Flow.prototype.get = function get(id) {
 var filterMessages = function (db, $q, $rootScope, event) {
   var d = $q.defer();
 
-  db.query(function (doc, emit) {
-    if (event) {
-      if (doc.event === event) emit(doc);
-    } else {
-      emit(doc);
-    }
-  }).then(function (res) {
-    d.resolve(_.map(res.rows, function (r) { return r.key; }));
-  });
+  //db.query(function (doc, emit) {
+    //if (event) {
+      //if (doc.event === event) emit(doc);
+    //} else {
+      //emit(doc);
+    //}
+  //}).then(function (res) {
+    //d.resolve(_.map(res.rows, function (r) { return r.key; }));
+  //});
 
+  db.allDocs({include_docs: true}).then(function (res) {
+    d.resolve(_(res.rows)
+             .map(function (r) { return r.doc; })
+             .filter(function (r) { return event ? r.event === event : true; })
+             .value()
+             );
+  });
   return d.promise;
 };
 
@@ -140,14 +147,43 @@ Flow.prototype.all = function () {
   return filterMessages(this.db, this.$q, this.$rootScope);
 };
 
+var countMessages = function (db, $q, $rootScope, event) {
+  var d = $q.defer();
+
+  db.query(function (doc, emit) {
+    if (event) {
+      if (doc.event === event) emit(1);
+    } else {
+      emit(1);
+    }
+  }).then(function (res) {
+    console.log(res);
+    d.resolve(res.total_rows);
+  });
+
+  return d.promise;
+};
+
+Flow.prototype.countMessages = function () {
+  return countMessages(this.db, this.$q, this.$rootScope, 'message');
+};
+
+Flow.prototype.countComments = function () {
+  return countMessages(this.db, this.$q, this.$rootScope, 'comment');
+};
+
+Flow.prototype.countAll = function () {
+  return countMessages(this.db, this.$q, this.$rootScope);
+};
+
 var mod = angular.module('data', [])
 .service('dataFlows', function ($rootScope, $q, $http) {
-  var main = new PouchDB('flowvis--main');
-  var users = new PouchDB('flowvis--users');
+  var users = new PouchDB('flowvis__users');
+  var main = new PouchDB('flowvis__main');
   var cache = {};
   var activeFID = null;
 
-  var downloadAllMessages = function (flowurl) {
+  var downloadAllMessages = function (flowurl, from) {
     var
       allData,
       getNext,
@@ -181,7 +217,7 @@ var mod = angular.module('data', [])
       return d.promise;
     };
 
-    getNext().then(function (res) { defer.resolve(res); });
+    getNext(from || 0).then(function (res) { defer.resolve(res); });
 
     return defer.promise;
   };
@@ -189,19 +225,15 @@ var mod = angular.module('data', [])
   var download = function (path, db) {
     var d = $q.defer();
 
-    console.log('clearing db');
-    db.destroy().then(function () {
-      console.log('db cleared');
-      $http.get(path).success(function (data) {
-        _.each(data, function (d) {
-          d._id = d.id + '';
-        });
-
-        db.bulkDocs({
-          docs: data
-        }).then(function () { d.resolve(data); }, function (err) { d.reject(err); });
+    $http.get(path).success(function (data) {
+      _.each(data, function (d) {
+        d._id = d.id + '';
       });
-    }, function (err) { console.error(err); });
+
+      db.bulkDocs({
+        docs: data
+      }).then(function () { d.resolve(data); }, function (err) { d.reject(err); });
+    });
 
     return d.promise;
   };
@@ -216,7 +248,6 @@ var mod = angular.module('data', [])
     },
 
     getActiveFlow: function () {
-      console.log('activeFID', activeFID);
       return this.getFlow(activeFID);
     },
 
@@ -249,13 +280,14 @@ var mod = angular.module('data', [])
     getAllFlows: function () {
       var d = $q.defer();
 
-      main.query(function (doc, emit) { emit(doc); }).then(function (res) {
+      main.allDocs({include_docs: true}).then(function (res) {
+        console.log(res);
         var ret;
 
         ret = _.map(res.rows, function (row) {
           var n, doc;
           n = row.id;
-          doc = row.key;
+          doc = row.doc;
           
           if (!cache.hasOwnProperty(n)) {
             cache[n] = new Flow(doc.id, name, doc, $q, $rootScope);
@@ -317,6 +349,22 @@ var mod = angular.module('data', [])
       });
 
       return d.promise;
+    },
+
+    downloadNewMessages: function (flow) {
+      var d = $q.defer();
+
+      flow.all().then(function (messages) {
+        console.log(messages);
+        var lid = _(messages).filter(function (m) { return m.hasOwnProperty('sent'); }).sortBy('sent').last();
+        console.log(lid);
+        downloadAllMessages(flow.doc.url, lid ? lid._id : null).then(function (messages) {
+          flow.create(messages).then(function () { d.resolve(messages); }, function (err) { console.error(err); });
+        });
+      });
+
+      return d.promise;
+
     }
   };
 });

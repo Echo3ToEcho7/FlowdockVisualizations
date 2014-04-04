@@ -1,7 +1,7 @@
 var
   app;
 
-app = angular.module('fdvis', ['ngRoute', 'data', 'base64']);
+app = angular.module('fdvis', ['ngRoute', 'data', 'base64', 'fdvis.dashboard', 'fdvis.authentication']);
 
 app.constant('fdVisualizations', [{
   group: 'Users',
@@ -12,22 +12,22 @@ app.constant('fdVisualizations', [{
   group: 'Users',
   name: 'Total by Users During Experiment',
   route: '/totalByUsersExp',
-  href: '/vis/totalByUsersExp.html'
+  href: 'web/vis/totalByUsersExp.html'
 }, {
   group: 'Users',
   name: 'Total Started by Users During Experiment',
-  route: '/totalByUsersExp',
-  href: '/vis/totalStartedByUsersExp.html'
+  route: '/totalStartedByUsersExp',
+  href: 'web/vis/totalStartedByUsersExp.html'
 }, {
   group: 'Users',
   name: 'Total Started by Users During Experiment (filter Tye)',
   route: '/totalByUsersExpFilterTye',
-  href: '/vis/totalStartedByUsersExpFilterTye.html'
+  href: 'web/vis/totalStartedByUsersExpFilterTye.html'
 }, {
   group: 'Conversations',
   name: 'Responces',
   route: '/respondsTo',
-  href: '/vis/respondsTo.html'
+  href: 'web/vis/respondsTo.html'
 }, {
   group: 'Messages',
   name: 'By Day of Week and Time',
@@ -41,111 +41,8 @@ app.directive('fdTree', function () {
   };
 });
 
-app.service('fdVisualizationData', function ($http, $q) {
-  var
-    messages,
-    messagesPromise,
-    users,
-    usersPromise,
-    promise,
-    service;
-
-  messagesPromise = $http.get('/data/messages.json').success(function (data) { messages = data; return data; });
-  usersPromise = $http.get('/data/users.json').success(function (data) { users = data; return data; });
-  promise = $q.all({ messages: messagesPromise, users: usersPromise});
-  service = {};
-
-  Object.defineProperties(service, {
-    promise : {
-      value: promise,
-      writable: false
-    },
-    messages: {
-      get: function () { return messages; }
-    },
-    users: {
-      get: function () { return users; }
-    }
-  });
-
-  return service;
-});
-
 app.controller('fdNavBar', function fdNavBar($scope, fdVisualizations) {
   $scope.navs = _.groupBy(fdVisualizations, 'group');
-});
-
-app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
-  var getAllFlows = function () {
-    dataFlows.getAllFlows().then(function (flows) {
-      console.log(flows);
-      $scope.flows = _(flows).map(function (f) { 
-        return {
-          id: f.doc._id,
-          name: f.doc.name,
-          flow: f
-        };
-      }).indexBy('id').value();
-
-      _.each($scope.flows, function (f) {
-        $q.all({
-          lastUpdated: f.flow.lastUpdated,
-          threads: f.flow.messages(),
-          comments: f.flow.comments()
-        }).then(function (res) {
-          f.lastUpdated = res.lastUpdated;
-          f.threads = res.threads.length;
-          f.comments = res.comments.length;
-        }, function (err) { console.error(err); });
-      });
-
-      $scope.loading = false;
-    });
-  };
-
-  $scope.updateUsers = function () {
-    $scope.user_loading = true;
-    dataFlows.downloadUsers().then(function (users) {
-      $scope.users = _(users).sortBy('name').first(20).value();
-      $scope.user_loading = false;
-    }, function (err) { console.error(err); throw err; });
-  };
-  $scope.updateUsers();
-  getAllFlows();
-
-  $scope.downloadFlows = function () {
-    $scope.flows = {};
-    $scope.loading = true;
-    dataFlows.downloadFlows().then(function (flows) {
-      getAllFlows();
-    });
-  };
-
-  $scope.updateFlow = function (id) {
-    $scope.loading = true;
-    dataFlows.getFlow(id).then(function (flow) {
-      dataFlows.downloadMessages(flow).then(function (messages) {
-        $q.all({
-          threads: flow.messages(),
-          comments: flow.comments(),
-          lastUpdated: flow.lastUpdated
-        }).then(function (res) {
-          console.log(res);
-          $scope.flows[id].threads = res.threads.length;
-          $scope.flows[id].comments = res.comments.length;
-          $scope.flows[id].lastUpdated = new Date();
-          $scope.loading = false;
-        });
-      });
-    });
-  };
-
-  $scope.activeFID = dataFlows.getActiveFlowID();
-  $scope.makeActive = function (id) {
-    $scope.activeFID = id;
-    localStorage.setItem('activeFlow', id);
-    dataFlows.setActiveFlowID(id);
-  };
 });
 
 app.config(function ($routeProvider, fdVisualizations) {
