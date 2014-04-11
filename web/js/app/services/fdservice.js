@@ -206,6 +206,7 @@ var mod = angular.module('data', [])
 
           //console.log('Grabbed another', data.length, new Date(first.sent), first.id, last.id, id);
           defer.notify(data);
+          $rootScope.$broadcast('downloadedMessages', data);
 
           if (data.length === limit) {
             getNext(last.id).then(function (res) { d.resolve(data.concat(res)); });
@@ -288,7 +289,7 @@ var mod = angular.module('data', [])
           var n, doc;
           n = row.id;
           doc = row.doc;
-          
+
           if (!cache.hasOwnProperty(n)) {
             cache[n] = new Flow(doc.id, name, doc, $q, $rootScope);
           }
@@ -343,10 +344,14 @@ var mod = angular.module('data', [])
     downloadMessages: function (flow) {
       var d = $q.defer();
 
-      downloadAllMessages(flow.doc.url).then(function (messages) {
-        flow.db.destroy();
-        flow.create(messages).then(function () { d.resolve(messages); }, function (err) { console.error(err); });
-      });
+      downloadAllMessages(flow.doc.url).then(
+        function (messages) {
+          flow.db.destroy();
+          flow.create(messages).then(function () { $rootScope.$broadcast('messagesDownloaded'); d.resolve(messages); });
+        },
+        function () { console.error(arguments); },
+        function (val) { $rootScope.$broadcast('downloadedMessages', val); }
+      );
 
       return d.promise;
     },

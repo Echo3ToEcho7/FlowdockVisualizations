@@ -1,6 +1,9 @@
 var app = angular.module('fdvis.dashboard', []);
 
 app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
+  var messages = 0;
+  var notification = null;
+
   var getAllFlows = function () {
     dataFlows.getAllFlows().then(function (flows) {
       $scope.flows = _(flows).map(function (f) { 
@@ -45,6 +48,21 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
     });
   });
 
+  $scope.$on('downloadedMessages', function (evt, msgs) {
+    if (!notification) {
+      notification = noty({ text: "Downloaded " + messages, layout: 'top' });
+    }
+
+    messages = messages + msgs.length;
+    notification.setText("Downloaded " + messages);
+  });
+
+  $scope.$on('messagesDownloaded', function (evt) {
+    messages = 0;
+    notification.close();
+    notification = null;
+  });
+
   $scope.downloadFlows = function () {
     $scope.flows = {};
     $scope.loading = true;
@@ -54,6 +72,10 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
   };
 
   $scope.updateFlow = function (id) {
+    if (!notification) {
+      notification = noty({ text: "Downloaded " + messages, layout: 'top' });
+    }
+
     $scope.loading = true;
     dataFlows.getFlow(id).then(function (flow) {
       dataFlows.downloadNewMessages(flow).then(function (messages) {
@@ -62,6 +84,12 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
           comments: flow.comments(),
           lastUpdated: flow.lastUpdated
         }).then(function (res) {
+          messages = 0;
+          if (notification) {
+            notification.close();
+          }
+          notification = null;
+
           $scope.flows[id].threads = res.threads.length;
           $scope.flows[id].comments = res.comments.length;
           $scope.flows[id].lastUpdated = new Date();
