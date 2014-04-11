@@ -37,6 +37,14 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
   //$scope.updateUsers();
   getAllFlows();
 
+  $scope.$on('authenticated', function (evt, user) {
+    dataFlows.getAllFlows().then(function (flows) {
+      if (flows.length === 0) {
+        $scope.downloadFlows();
+      }
+    });
+  });
+
   $scope.downloadFlows = function () {
     $scope.flows = {};
     $scope.loading = true;
