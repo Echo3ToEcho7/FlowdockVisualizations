@@ -41,6 +41,7 @@ angular.module('fdvis.authentication.controller', ['fdvis.authentication.service
   $scope.login = function () {
     authenticationService.authenticate($scope.username, $scope.password).then(function (user) {
       localStorage.setItem('token', $scope.username);
+      sessionStorage.setItem('token', $scope.username);
       sessionStorage.setItem('password', $scope.password);
       $('#myModal').modal('hide');
     });

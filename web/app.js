@@ -25,7 +25,7 @@ app.constant('fdVisualizations', [{
   href: 'web/vis/totalStartedByUsersExpFilterTye.html'
 }, {
   group: 'Conversations',
-  name: 'Responces',
+  name: 'Responses',
   route: '/respondsTo',
   href: 'web/vis/respondsTo.html'
 }, {
@@ -59,19 +59,16 @@ app.config(function ($routeProvider, fdVisualizations) {
   $routeProvider.otherwise({redirectTo: '/'});
 });
 
-app.run(function ($http, dataFlows, Base64) {
+app.run(function ($http, dataFlows, Base64, authenticationService) {
     "use strict";
 
     if (localStorage.getItem('activeFlow')) {
       dataFlows.setActiveFlowID(localStorage.getItem('activeFlow'));
     }
 
-    //dataFlows.downloadFlows().then(function (flows) {
-      //dataFlows.getFlow(flows[0].id).then(function (flow) {
-        //dataFlows.downloadMessages(flow).then(function (messages) {
-        //});
-      //});
-    //});
+    if (sessionStorage.getItem('token')) {
+      authenticationService.authenticate(sessionStorage.getItem('token'), sessionStorage.getItem('password'));
+    }
 
     //Enable sidebar toggle
     $("[data-toggle='offcanvas']").click(function(e) {

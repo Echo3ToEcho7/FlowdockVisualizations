@@ -1,7 +1,7 @@
 <script type="text/javascript">
   //var vis = angular.module('fdvis.totalByUsers', ['fdvis']);
 
-function TotalsByUserController(fdVisualizationData) {
+function TotalsByUserController($scope, $q, dataFlows) {
   var
     usersByID,
     normalizedData,
@@ -10,11 +10,17 @@ function TotalsByUserController(fdVisualizationData) {
     format = d3.format(",d"),
     color = d3.scale.category20c();
 
-  usersByID = _.indexBy(fdVisualizationData.users, 'id');
-  usersTotalMessages = _(fdVisualizationData.messages)
-    .filter(function (m) { return (new Date(m.sent) > new Date(2014, 2, 14)); })
-    .filter(function (m) { return m.event === 'message'; })
-    .groupBy('user').value();
+  $scope.loading = true;
+
+  $q.all({
+    users: dataFlows.getAllUsers(),
+    messages: dataFlows.getActiveFlow().then(function (f) { return f.messages(); })
+  }).then(function (res) {
+    usersByID = _.indexBy(res.users, 'id');
+    usersTotalMessages = _(res.messages)
+      .filter(function (m) { return (new Date(m.sent) > new Date(2014, 2, 14)); })
+      .filter(function (m) { return m.event === 'message'; })
+      .groupBy('user').value();
   console.log(usersTotalMessages);
 
   normalizedData = _(usersTotalMessages).transform(function (result, messages, user) {
@@ -57,9 +63,29 @@ function TotalsByUserController(fdVisualizationData) {
     .style("text-anchor", "middle")
     .text(function(d) { return d.username.substring(0, d.r / 3); });
 
+    $scope.loading = false;
+  });
 
 }
 </script>
-<div data-ng-controller="TotalsByUserController" id="chart">
-
-</div>
+<section class="content-header">
+    <h1>
+      Total Started by Users During TAM Experiment
+    </h1>
+    <ol class="breadcrumb">
+      <li><a href="#"><i class="fa fa-bar-chart-o"></i> Users</a></li>
+        <li class="active">Total Started by User During TAM Experiment</li>
+    </ol>
+</section>
+<section class="content"  data-ng-controller="TotalsByUserController">
+  <div class="box box-primary box-default">
+    <div class="box-header">
+      <div class="box-title">Chart</div>
+    </div>
+    <div class="box-body">
+      <div id="chart" style="min-height: 300px"></div>
+    </div>
+    <div class="overlay" data-ng-show="loading"></div>
+    <div class="loading-img" data-ng-show="loading"></div>
+  </div>
+</section>
