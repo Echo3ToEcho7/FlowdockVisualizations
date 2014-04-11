@@ -186,7 +186,7 @@ app.run(function ($http, dataFlows, Base64, authenticationService) {
     $.noty.defaults = {
         layout: 'top',
         theme: 'default',
-        type: 'alert',
+        type: 'warning',
         text: '', // can be html or string
         dismissQueue: true, // If you want to use queue feature set this true
         template: '<div class="noty_message"><span class="noty_text"></span><div class="noty_close"></div></div>',
