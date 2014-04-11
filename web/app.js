@@ -1,7 +1,7 @@
 var
   app;
 
-app = angular.module('fdvis', ['ngRoute', 'data', 'base64', 'fdvis.dashboard', 'fdvis.authentication']);
+app = angular.module('fdvis', ['ngRoute', 'data', 'base64', 'fdvis.dashboard', 'fdvis.authentication.controller']);
 
 app.constant('fdVisualizations', [{
   group: 'Users',
@@ -61,9 +61,6 @@ app.config(function ($routeProvider, fdVisualizations) {
 
 app.run(function ($http, dataFlows, Base64) {
     "use strict";
-
-    $http.defaults.headers.common.Authorization = 'Basic ' + Base64.encode('4f9bb278d74c144799594c6558f2ac02' + ':' + '');
-
 
     if (localStorage.getItem('activeFlow')) {
       dataFlows.setActiveFlowID(localStorage.getItem('activeFlow'));

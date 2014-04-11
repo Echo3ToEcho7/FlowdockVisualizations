@@ -34,7 +34,7 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
       $scope.user_loading = false;
     }, function (err) { console.error(err); throw err; });
   };
-  $scope.updateUsers();
+  //$scope.updateUsers();
   getAllFlows();
 
   $scope.downloadFlows = function () {
