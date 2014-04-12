@@ -46,6 +46,7 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
         $scope.downloadFlows();
       }
     });
+    $scope.updateUsers();
   });
 
   $scope.$on('downloadedMessages', function (evt, msgs) {
