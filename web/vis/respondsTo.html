@@ -99,6 +99,7 @@
 
       var w = $('#chart').width() - 20, h = w, r1 = h / 2, r0 = r1 - 110;
       var color = d3.scale.category20c();
+      var lastIndex = -1;
 
       var chord = d3.layout.chord()
         .padding(.02)
@@ -153,12 +154,17 @@
         .style("stroke", "grey")
         .style("fill", function(d, i) { return color((userObjects[i] ? userObjects[i].nick : '')); })
         .attr("d", d3.svg.chord().radius(r0))
-        .on("mouseover", function (d) {
+        .on("mouseover", function (d, i) {
           d3.select("#tooltip")
             .style("visibility", "visible")
             .html(chordTip(d))
             .style("top", function () { return (d3.event.pageY - 100)+"px"})
             .style("left", function () { return (d3.event.pageX - 100)+"px";})
+
+          console.log('mouseover');
+          chordPaths.classed("fade", function(p) {
+            return (p.source.index !== lastIndex && p.target.index !== lastIndex);
+          });
         })
         .on("mouseout", function (d) { d3.select("#tooltip").style("visibility", "hidden") });
 
@@ -178,6 +184,7 @@
       }
 
       function mouseover(d, i) {
+        lastIndex = i;
         d3.select("#tooltip")
           .style("visibility", "visible")
           .html(groupTip(d))
@@ -185,17 +192,16 @@
           .style("left", function () { return (d3.event.pageX - 130)+"px";})
 
         chordPaths.classed("fade", function(p) {
-          return p.source.index != i
-              && p.target.index != i;
+          return !(p.source.index === i ||  p.target.index === i);
         });
       }
 
       function mouseout(d, i) {
         d3.select("#tooltip").style("visibility", "hidden"); 
         chordPaths.classed("fade", function(p) {
-          console.log(p.source.index, p.target.index, i);
-          return p.source.index !== i
-              && p.target.index !== i;
+          //console.log(p.source.index !== i && p.target.index !== i, p.source.index, p.target.index, i);
+          return false;
+          //return (p.source.index !== i && p.target.index !== i);
         });
       }
 
