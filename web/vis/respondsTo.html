@@ -1,152 +1,201 @@
-<script type="text/javascript">
-  //var vis = angular.module('fdvis.totalByUsers', ['fdvis']);
+<style>
+#circle circle {
+  fill: none;
+  pointer-events: all;
+}
 
-function RespondsToController(fdVisualizationData) {
+.group path {
+  fill-opacity: .5;
+}
+
+path.chord {
+  stroke: #000;
+  stroke-width: .25px;
+}
+
+#circle:hover path.fade {
+  display: none;
+}
+</style>
+<script type="text/javascript">
+function RespondsToController($scope, $q, dataFlows) {
   var
     usersByID,
     matrix,
     messagesByID,
-    conversations,
-    usersIndexToID;
+    commentsByUser,
+    numComments,
+    userIDsInFlow,
+    userList,
 
-  matrix = [];
+    dataPromise,
+    usersPromise;
 
-  usersByID = _.indexBy(fdVisualizationData.users, 'id');
-  users = _.transform(usersByID, function (res, o, id) { res[id] = []; });
+  $scope.loading = true;
 
-  usersIndexToID = _(fdVisualizationData.users)
-    .map('id')
-    .sort()
-    .value();
+  usersPromise = dataFlows.getAllUsers();
+  dataPromise = dataFlows.getActiveFlow().then(function (f) { console.log(f); return f.all(); });
 
-  messagesByID = _(fdVisualizationData.messages)
-    .filter(function (m) { return m.event === 'message'; })
-    .indexBy('id')
-    .value();
 
-  conversations = _(fdVisualizationData.messages)
-    .filter(function (m) { return m.event === 'comment'; })
-    .groupBy(function (m) { 
-      var id = _(m.tags).find(function (t) { return t.indexOf('influx:') !== -1; });
-      return id.split(':')[1];
-    }).value();
+  $q.all({users: usersPromise, data: dataPromise}).then(function (res) {
+    matrix = [];
 
-  _.forOwn(conversations, function (cs, m) {
-    if (!messagesByID[m]) { return; }
-    _.each(cs, function (c) { users[messagesByID[m].user].push(c.user); }); 
-  });
+    userIDsInFlow = _(res.data)
+      .map(function (m) { return parseInt(m.user + '', 10); })
+      .unique()
+      .value();
+    usersByID = _(res.users).filter(function (u) { return _.contains(userIDsInFlow, u.id); }).indexBy('id').value();
+    userList = _.map(usersByID, function (u) { return u.id; });
 
-  users = _.transform(users, function (res, a, u) {
-    if (a.length > 0) {
-      res[usersByID[u].nick] = _(a).map(function (i) { return usersByID[i].nick; }).value();
-    }
-  });
-  console.log(users);
+    messagesByID = _(res.data)
+      .filter(function (m) { return m.event === 'message'; })
+      .indexBy('id')
+      .value();
 
-  for (var i = 0; i < usersIndexToID.length; i++) {
-    matrix[i] = [];
-    for (var j = 0; j < usersIndexToID.length; j++) {
-      matrix[i][j] = 0;
-    }
-  }
+    numComments = _(res.data)
+      .filter(function (m) { return m.event === 'comment'; })
+      .value().length;
 
-  console.log(matrix);
-  console.log(usersIndexToID);
 
-  _.forOwn(users, function (usr, nick) {
+    commentsByUser = _(res.data)
+      .filter(function (m) { return m.event === 'comment'; })
+      .groupBy(function (m) { return m.user; })
+      .value();
 
-  });
-  return;
+    _.each(userList, function (u, idx) {
+      var row = _.map(userList, function () { return 0; });
+      var list = commentsByUser[u];
 
-  var width = 720,
-      height = 720,
-      outerRadius = Math.min(width, height) / 2 - 10,
-      innerRadius = outerRadius - 24;
+      _.each(list, function (c) {
+        var mid = _(c.tags).filter(function (t) { return t.indexOf('influx:') !== -1; }).map(function (t) { return t.split(':')[1]; }).first();
+        var m = messagesByID[parseInt(mid + '', 10)];
+        if (!m) { 
+          console.info('Message not found', mid);
+          return;
+        }
 
-  var formatPercent = d3.format(".1%");
+        var i = _.indexOf(userList, parseInt(m.user + '', 10));
+        if (i >= 0) {
+          row[i] = row[i] + (1 / numComments);
+        }
+      });
 
-  var arc = d3.svg.arc()
-      .innerRadius(innerRadius)
-      .outerRadius(outerRadius);
-
-  var layout = d3.layout.chord()
-      .padding(.04)
-      .sortSubgroups(d3.descending)
-      .sortChords(d3.ascending);
-
-  var path = d3.svg.chord()
-      .radius(innerRadius);
-
-  var svg = d3.select("body").append("svg")
-      .attr("width", width)
-      .attr("height", height)
-    .append("g")
-      .attr("id", "circle")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-  svg.append("circle")
-      .attr("r", outerRadius);
-
-  // Compute the chord layout.
-  layout.matrix(matrix);
-
-  // Add a group per neighborhood.
-  var group = svg.selectAll(".group")
-      .data(layout.groups)
-    .enter().append("g")
-      .attr("class", "group")
-      .on("mouseover", mouseover);
-
-  // Add a mouseover title.
-  group.append("title").text(function(d, i) {
-    return cities[i].name + ": " + formatPercent(d.value) + " of origins";
-  });
-
-  // Add the group arc.
-  var groupPath = group.append("path")
-      .attr("id", function(d, i) { return "group" + i; })
-      .attr("d", arc)
-      .style("fill", function(d, i) { return cities[i].color; });
-
-  // Add a text label.
-  var groupText = group.append("text")
-      .attr("x", 6)
-      .attr("dy", 15);
-
-  groupText.append("textPath")
-      .attr("xlink:href", function(d, i) { return "#group" + i; })
-      .text(function(d, i) { return cities[i].name; });
-
-  // Remove the labels that don't fit. :(
-  groupText.filter(function(d, i) { return groupPath[0][i].getTotalLength() / 2 - 16 < this.getComputedTextLength(); })
-      .remove();
-
-  // Add the chords.
-  var chord = svg.selectAll(".chord")
-      .data(layout.chords)
-    .enter().append("path")
-      .attr("class", "chord")
-      .style("fill", function(d) { return cities[d.source.index].color; })
-      .attr("d", path);
-
-  // Add an elaborate mouseover title for each chord.
-  chord.append("title").text(function(d) {
-    return cities[d.source.index].name
-        + " → " + cities[d.target.index].name
-        + ": " + formatPercent(d.source.value)
-        + "\n" + cities[d.target.index].name
-        + " → " + cities[d.source.index].name
-        + ": " + formatPercent(d.target.value);
-  });
-
-  function mouseover(d, i) {
-    chord.classed("fade", function(p) {
-      return p.source.index != i
-          && p.target.index != i;
+      matrix.push(row);
     });
-  }
+
+    console.log(matrix);
+
+    var width = $('#chart').width() - 20,
+        height = width,
+        outerRadius = Math.min(width, height) / 2 - 10,
+        innerRadius = outerRadius - 24,
+        color = d3.scale.category20c();
+
+    var formatPercent = d3.format(".1%");
+
+    var arc = d3.svg.arc()
+        .innerRadius(innerRadius)
+        .outerRadius(outerRadius);
+
+    var layout = d3.layout.chord()
+        .padding(.04)
+        .sortSubgroups(d3.descending)
+        .sortChords(d3.ascending);
+
+    var path = d3.svg.chord()
+        .radius(innerRadius);
+
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+      .append("g")
+        .attr("id", "circle")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    svg.append("circle")
+        .attr("r", outerRadius);
+
+    // Compute the chord layout.
+    layout.matrix(matrix);
+
+    // Add a group per neighborhood.
+    var group = svg.selectAll(".group")
+        .data(layout.groups)
+      .enter().append("g")
+        .attr("class", "group")
+        .on("mouseover", mouseover);
+
+    // Add a mouseover title.
+    group.append("title").text(function(d, i) {
+      return usersByID[userList[i]].nick + ": " + formatPercent(d.value) + " of comments";
+    });
+
+    // Add the group arc.
+    var groupPath = group.append("path")
+        .attr("id", function(d, i) { return "group" + i; })
+        .attr("d", arc)
+        .style("fill", function(d, i) { return color(usersByID[userList[i]].nick); });
+
+    // Add a text label.
+    var groupText = group.append("text")
+        .attr("x", 6)
+        .attr("dy", 15);
+
+    groupText.append("textPath")
+        .attr("xlink:href", function(d, i) { return "#group" + i; })
+        .text(function(d, i) { return usersByID[userList[i]].nick; });
+
+    // Remove the labels that don't fit. :(
+    groupText.filter(function(d, i) { return groupPath[0][i].getTotalLength() / 2 - 18 < this.getComputedTextLength(); })
+        .remove();
+
+    // Add the chords.
+    var chord = svg.selectAll(".chord")
+        .data(layout.chords)
+      .enter().append("path")
+        .attr("class", "chord")
+        .style("fill", function(d) { return color(usersByID[userList[d.source.index]].nick); })
+        .attr("d", path);
+
+    // Add an elaborate mouseover title for each chord.
+    chord.append("title").text(function(d) {
+      return usersByID[userList[d.source.index]].nick
+          + " → " + usersByID[userList[d.target.index]].nick
+          + ": " + formatPercent(d.source.value)
+          + "\n" + usersByID[userList[d.target.index]].nick
+          + " → " + usersByID[userList[d.source.index]].nick
+          + ": " + formatPercent(d.target.value);
+    });
+
+    function mouseover(d, i) {
+      chord.classed("fade", function(p) {
+        return p.source.index != i
+            && p.target.index != i;
+      });
+    }
+
+    $scope.loading = false;
+  });
 }
 </script>
-<div data-ng-controller="TotalsByUserController" id="chart">
-
-</div>
+<section class="content-header">
+    <h1>
+      Responses
+    </h1>
+    <ol class="breadcrumb">
+      <li><a href="#"><i class="fa fa-bar-chart-o"></i> Conversations</a></li>
+        <li class="active">Responses</li>
+    </ol>
+</section>
+<section class="content"  data-ng-controller="RespondsToController">
+  <div class="box box-primary box-default">
+    <div class="box-header">
+      <div class="box-title">Chart</div>
+    </div>
+    <div class="box-body">
+      <div id="chart" style="min-height: 300px"></div>
+    </div>
+    <div class="overlay" data-ng-show="loading"></div>
+    <div class="loading-img" data-ng-show="loading"></div>
+  </div>
+</section>
