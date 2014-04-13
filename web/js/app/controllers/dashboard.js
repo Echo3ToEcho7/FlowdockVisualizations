@@ -1,6 +1,6 @@
 var app = angular.module('fdvis.dashboard', []);
 
-app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
+app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourService) {
   var messages = 0;
   var notification = null;
 
@@ -106,5 +106,9 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows) {
     localStorage.setItem('activeFlow', id);
     dataFlows.setActiveFlowID(id);
   };
+
+  //var t = tourService.login();
+  //t.init();
+  //t.start(true);
 });
 

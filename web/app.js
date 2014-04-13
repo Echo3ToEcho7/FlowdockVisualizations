@@ -1,7 +1,7 @@
 var
   app;
 
-app = angular.module('fdvis', ['ngRoute', 'data', 'base64', 'fdvis.dashboard', 'fdvis.authentication.controller']);
+app = angular.module('fdvis', ['ngRoute', 'data', 'base64', 'fdvis.dashboard', 'fdvis.authentication.controller', 'fdvis.tour']);
 
 app.constant('fdVisualizations', [{
   group: 'Users',
@@ -28,6 +28,11 @@ app.constant('fdVisualizations', [{
   name: 'Responses',
   route: '/respondsTo',
   href: 'web/vis/respondsTo.html'
+}, {
+  group: 'Conversations',
+  name: 'Mentions',
+  route: '/mentions',
+  href: 'web/vis/mentions.html'
 }, {
   group: 'Messages',
   name: 'By Day of Week and Time',
