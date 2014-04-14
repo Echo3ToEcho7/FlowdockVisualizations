@@ -5,11 +5,10 @@ function TotalsByUserController($scope, $q, dataFlows) {
   var
     usersByID,
     normalizedData,
-    width = 900,
-    height = 700,
+    width = $('#chart').width() - 20,
+    height = width,
     format = d3.format(",d"),
     color = d3.scale.category20c();
-
 
   $scope.loading = true;
   $scope.title = "Total by User";
