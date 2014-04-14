@@ -17,13 +17,13 @@
         <div class="box-header">
           <div class="box-title">Flows</div>
           <div class="box-tools pull-right">
-            <button type="button" class="btn btn-default btn-sm" data-ng-click="downloadFlows()">
+            <button id="refreshFlows" type="button" class="btn btn-default btn-sm" data-ng-click="downloadFlows()">
               <i class="fa fa-refresh"></i>
             </button>
           </div>
         </div>
         <div class="box-body table-responsive no-padding">
-          <table class="table table-hover">
+          <table id="flows" class="table table-hover">
             <thead>
               <tr>
                 <th style="width: 50%">Name</th>
@@ -34,13 +34,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr data-ng-repeat="(id, flow) in flows" data-ng-class="{ success: id === activeFID }" data-ng-click="makeActive(id)">
+              <tr data-ng-repeat="(id, flow) in flows" class="flow" data-ng-class="{ success: id === activeFID }" data-ng-click="makeActive(id)">
                 <td>{{ flow.name }}</td>
                 <td>{{ flow.threads }} </td>
                 <td>{{ flow.comments }} </td>
                 <td>{{ flow.lastUpdated | date:'MM/dd/yyyy @ h:mma' }} </td>
                 <td>
-                  <button type="button" id="downloadMessages" class="btn btn-sm btn-flat" data-ng-click="updateFlow(id)">
+                  <button type="button" class="btn btn-sm btn-flat downloadMessages" data-ng-click="updateFlow(id)">
                     <i class="fa fa-download"></i>
                   </button>
                 </td>

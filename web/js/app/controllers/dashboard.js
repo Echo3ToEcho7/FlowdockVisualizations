@@ -5,7 +5,7 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourSe
   var notification = null;
 
   var getAllFlows = function () {
-    dataFlows.getAllFlows().then(function (flows) {
+    return dataFlows.getAllFlows().then(function (flows) {
       $scope.flows = _(flows).map(function (f) { 
         return {
           id: f.doc._id,
@@ -43,7 +43,13 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourSe
   $scope.$on('authenticated', function (evt, user) {
     dataFlows.getAllFlows().then(function (flows) {
       if (flows.length === 0) {
-        $scope.downloadFlows();
+        $scope.downloadFlows().then(function () {
+          if (tourService.login())
+            tourService.login().next();
+        });
+      } else {
+        if (tourService.login())
+          tourService.login().next();
       }
     });
     $scope.updateUsers();
@@ -67,8 +73,8 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourSe
   $scope.downloadFlows = function () {
     $scope.flows = {};
     $scope.loading = true;
-    dataFlows.downloadFlows().then(function (flows) {
-      getAllFlows();
+    return dataFlows.downloadFlows().then(function (flows) {
+      return getAllFlows();
     });
   };
 
@@ -107,8 +113,9 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourSe
     dataFlows.setActiveFlowID(id);
   };
 
-  //var t = tourService.login();
-  //t.init();
-  //t.start(true);
+  var t = tourService.login();
+  if (!localStorage.getItem('loginTourDone')) {
+    t.start();
+  }
 });
 

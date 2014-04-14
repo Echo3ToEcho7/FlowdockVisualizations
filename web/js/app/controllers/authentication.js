@@ -32,6 +32,7 @@ angular.module('fdvis.authentication.controller', ['fdvis.authentication.service
   $scope.tryLogin = function () {
     //authenticationService.authenticate('4f9bb278d74c144799594c6558f2ac02');
     $('#myModal').modal('show');
+    Shepherd.activeTour.hide();
   };
 })
 .controller('loginController', function ($scope, authenticationService) {
