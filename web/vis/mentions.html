@@ -46,7 +46,7 @@
     $scope.loading = true;
 
     usersPromise = dataFlows.getAllUsers();
-    dataPromise = dataFlows.getActiveFlow().then(function (f) { console.log(f); return f.all(); });
+    dataPromise = dataFlows.getActiveFlow().then(function (f) { return f.all(); });
 
 
     $q.all({users: usersPromise, data: dataPromise}).then(function (res) {
@@ -88,8 +88,6 @@
 
         matrix.push(row);
       });
-
-      console.log(matrix);
 
       var w = $('#chart').width() - 20, h = w, r1 = h / 2, r0 = r1 - 110;
       var color = d3.scale.category20c();
@@ -155,7 +153,6 @@
             .style("top", function () { return (d3.event.pageY - 100)+"px"})
             .style("left", function () { return (d3.event.pageX - 100)+"px";})
 
-          console.log('mouseover');
           chordPaths.classed("fade", function(p) {
             return (p.source.index !== lastIndex && p.target.index !== lastIndex);
           });
@@ -193,9 +190,7 @@
       function mouseout(d, i) {
         d3.select("#tooltip").style("visibility", "hidden"); 
         chordPaths.classed("fade", function(p) {
-          //console.log(p.source.index !== i && p.target.index !== i, p.source.index, p.target.index, i);
           return false;
-          //return (p.source.index !== i && p.target.index !== i);
         });
       }
 

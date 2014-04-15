@@ -21,7 +21,6 @@ function TotalsByUserController($scope, $q, dataFlows) {
       .filter(function (m) { return (new Date(m.sent) > new Date(2014, 2, 14)); })
       .filter(function (m) { return m.event === 'message'; })
       .groupBy('user').value();
-  console.log(usersTotalMessages);
 
   normalizedData = _(usersTotalMessages).transform(function (result, messages, user) {
     if (usersByID[user]) {

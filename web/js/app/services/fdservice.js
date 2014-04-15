@@ -157,7 +157,6 @@ var countMessages = function (db, $q, $rootScope, event) {
       emit(1);
     }
   }).then(function (res) {
-    console.log(res);
     d.resolve(res.total_rows);
   });
 
@@ -204,7 +203,6 @@ var mod = angular.module('data', [])
           var first = _(data).sortBy('sent').first();
           var last = _(data).sortBy('sent').last();
 
-          //console.log('Grabbed another', data.length, new Date(first.sent), first.id, last.id, id);
           defer.notify(data);
           $rootScope.$broadcast('downloadedMessages', data);
 
@@ -282,7 +280,6 @@ var mod = angular.module('data', [])
       var d = $q.defer();
 
       main.allDocs({include_docs: true}).then(function (res) {
-        console.log(res);
         var ret;
 
         ret = _.map(res.rows, function (row) {
@@ -360,9 +357,7 @@ var mod = angular.module('data', [])
       var d = $q.defer();
 
       flow.all().then(function (messages) {
-        console.log(messages);
         var lid = _(messages).filter(function (m) { return m.hasOwnProperty('sent'); }).sortBy('sent').last();
-        console.log(lid);
         downloadAllMessages(flow.doc.url, lid ? lid._id : null).then(function (messages) {
           flow.create(messages).then(function () { d.resolve(messages); }, function (err) { console.error(err); });
         });

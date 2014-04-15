@@ -33,7 +33,7 @@ function PostsByDayHourController($scope, $q, dataFlows) {
   $scope.loading = true;
 
   usersPromise = dataFlows.getAllUsers();
-  dataPromise = dataFlows.getActiveFlow().then(function (f) { console.log(f); return f.all(); });
+  dataPromise = dataFlows.getActiveFlow().then(function (f) { return f.all(); });
 
   $q.all({users: usersPromise, data: dataPromise}).then(function (res) {
     usersByID = _.indexBy(res.users, 'id');
@@ -53,8 +53,6 @@ function PostsByDayHourController($scope, $q, dataFlows) {
       });
     }, [])
     .value();
-
-    console.log(data);
 
     var margin = { top: 50, right: 0, bottom: 100, left: 30 },
       width = $('#chart').width() - margin.left - margin.right,

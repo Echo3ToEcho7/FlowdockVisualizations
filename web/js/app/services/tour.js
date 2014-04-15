@@ -5,7 +5,6 @@ angular.module('fdvis.tour', [])
   return {
     login: function () {
       if (loginTour) return loginTour;
-      console.log('loginTourDone', localStorage.getItem('loginTourDone'));
       if (!!localStorage.getItem('loginTourDone')) return;
 
       loginTour = new Shepherd.Tour({

@@ -22,7 +22,6 @@ function TotalsByUserController($scope, $q, dataFlows) {
       .filter(function (m) { return m.event === 'message'; })
       .filter(function (m) { return usersByID[m.user].nick !== 'Tye'; })
       .groupBy('user').value();
-  console.log(usersTotalMessages);
 
   normalizedData = _(usersTotalMessages).transform(function (result, messages, user) {
     if (usersByID[user]) {
