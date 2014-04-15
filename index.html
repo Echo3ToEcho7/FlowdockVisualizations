@@ -238,24 +238,21 @@
         </div><!-- ./wrapper -->
 
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="form-box" id="login-box" data-ng-controller="loginController">
+          <form class="form-box" id="login-box" data-ng-controller="loginController">
             <div class="header">Sign In</div>
               <div class="body bg-gray">
                 <div class="form-group">
-                  <input type="text" name="userid" class="form-control" data-ng-model="username" placeholder="User ID or Token"/>
+                  <input type="text" name="userid" class="form-control" data-ng-model="username" autocapitalize="off" placeholder="User ID or Token"/>
                 </div>
                 <div class="form-group">
                   <input type="password" name="password" class="form-control" data-ng-model="password" placeholder="Password"/>
                 </div>
-                <!--<div class="form-group">-->
-                  <!--<input type="checkbox" name="remember_me"/> Remember me-->
-                <!--</div>-->
               </div>
               <div class="footer">
                   <button type="submit" data-ng-click="login()" class="btn bg-olive btn-block">Sign me in</button>
               </div>
             </div>
-          </div>
+          </form>
         </div>
 
         <script src="//cdnjs.cloudflare.com/ajax/libs/bluebird/1.0.0/bluebird.min.js" type="text/javascript"></script>
