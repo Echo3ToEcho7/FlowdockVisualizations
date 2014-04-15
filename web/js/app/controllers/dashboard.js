@@ -57,11 +57,11 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourSe
 
   $scope.$on('downloadedMessages', function (evt, msgs) {
     if (!notification) {
-      notification = noty({ text: "Downloaded " + messages, layout: 'top' });
+      notification = noty({ text: "Downloaded " + messages + ' messages', layout: 'top' });
     }
 
     messages = messages + msgs.length;
-    notification.setText("Downloaded " + messages);
+    notification.setText("Downloaded " + messages + ' messages');
   });
 
   $scope.$on('messagesDownloaded', function (evt) {
@@ -80,7 +80,7 @@ app.controller('fdDashboard', function fdDashboard($scope, $q, dataFlows, tourSe
 
   $scope.updateFlow = function (id) {
     if (!notification) {
-      notification = noty({ text: "Downloaded " + messages, layout: 'top' });
+      notification = noty({ text: "Downloaded " + messages + ' messages', layout: 'top' });
     }
 
     $scope.loading = true;
